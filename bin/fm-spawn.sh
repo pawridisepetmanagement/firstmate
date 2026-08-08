@@ -579,7 +579,7 @@ shell_quote() {
 }
 
 expand_launch_placeholders() {
-  local rest=$1 output= token prefix best_prefix best_token best_value
+  local rest=$1 output='' token prefix best_prefix best_token best_value
   while :; do
     best_prefix=$rest
     best_token=
@@ -679,7 +679,13 @@ effort_flag_for_harness() {
       esac
       ;;
     agy)
-      # AGY 1.1.9 exposes only low|medium|high for its --effort flag.
+      # agy display-name models bake effort into the name as a parenthesized
+      # suffix, e.g. "Gemini 3.1 Pro (High)". Passing a separate --effort
+      # alongside such a model causes agy to silently fall back to its default.
+      # Skip the effort flag when the model name already carries one.
+      case "$model" in
+        *'('[Ll]ow')'*|*'('[Mm]edium')'*|*'('[Hh]igh')'*) return 0 ;;
+      esac
       case "$effort" in
         low|medium|high) printf -- '--effort %s ' "$(shell_quote "$effort")" ;;
       esac
@@ -1706,7 +1712,7 @@ sq_state_real=$(shell_quote "$STATE_REAL")
 sq_id=$(shell_quote "$ID")
 sq_status=$(shell_quote "$STATE_REAL/$ID.status")
 MODELFLAG=$(model_flag_for_harness "$HARNESS" "$MODEL")
-EFFORTFLAG=$(effort_flag_for_harness "$HARNESS" "$EFFORT")
+EFFORTFLAG=$(effort_flag_for_harness "$HARNESS" "$EFFORT" "$MODEL")
 LAUNCH=$(expand_launch_placeholders "$LAUNCH")
 # Crewmate panes are created by a long-lived tmux/herdr daemon that does not
 # inherit firstmate's current environment, so a bare `claude` in the pane falls
