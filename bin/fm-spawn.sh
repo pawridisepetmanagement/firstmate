@@ -579,7 +579,7 @@ shell_quote() {
 }
 
 expand_launch_placeholders() {
-  local rest=$1 output= token prefix best_prefix best_token best_value
+  local rest=$1 output='' token prefix best_prefix best_token best_value
   while :; do
     best_prefix=$rest
     best_token=
